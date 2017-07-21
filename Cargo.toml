@@ -1,0 +1,6 @@
+[package]
+name = "sonar"
+version = "0.1.0"
+authors = ["Jon Grimes <jong@spiceworks.com>"]
+
+[dependencies]
