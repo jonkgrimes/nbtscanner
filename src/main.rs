@@ -17,16 +17,21 @@ const TIMEOUT_SECONDS: u64 = 2;
 
 
 struct NetBiosPacket {
-    data: [u8; 1024]
+    data: [u8; 1024],
+    length: usize
 } 
 
 impl Display for NetBiosPacket {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut values = String::new();
-        for byte in self.data.iter() {
-            values.push_str(&format!("{:x}, ", byte));
+        for (idx, byte) in self.data[0..self.length].iter().enumerate() {
+            if idx % 7 == 0 && idx != 0 {
+                values.push_str(&format!("{:#X}\n", byte));
+            } else {
+                values.push_str(&format!("{:#X} ", byte));
+            }
         }
-        write!(f, "[ {} ]", values)
+        write!(f, "[\n{}\n]", values)
     }
 }
 
@@ -42,7 +47,7 @@ fn main() {
         println!("Waiting for response");
         match socket.recv(&mut buf) {
             Ok(number_of_bytes) => {
-                let packet = NetBiosPacket { data: buf.clone() };
+                let packet = NetBiosPacket { data: buf.clone(), length: number_of_bytes };
                 println!("{} bytes received", number_of_bytes);
                 println!("{} source address", ip);
                 println!("{}", packet);
