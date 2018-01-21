@@ -1,0 +1,12 @@
+stages:
+  - test
+
+test:
+  stage: test
+  image: rust:1.23
+  tags:
+    - docker
+    - linux
+  script:
+    - cargo build
+    - cargo test
