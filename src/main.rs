@@ -3,12 +3,15 @@ extern crate clap;
 use std::time::{Duration};
 use std::net::UdpSocket;
 use std::net::Ipv4Addr;
-use std::fmt;
-use std::fmt::Display;
 use std::str::FromStr;
 use std::thread;
 
 use clap::{App, Arg};
+
+pub mod ip_range;
+pub mod nbt_packet;
+
+use nbt_packet::NetBiosPacket;
 
 const NET_BIOS_PORT: u16 = 137;
 const MESSAGE: [u8; 50] = [0xA2, 0x48, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -21,27 +24,6 @@ const RESPONSE_NAME_LEN: usize = 15;
 const RESPONSE_NAME_BLOCK_LEN: usize = 18;
 const TIMEOUT_SECONDS: u64 = 2;
 
-
-struct NetBiosPacket {
-    data: [u8; 1024],
-    length: usize
-} 
-
-impl Display for NetBiosPacket {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut values = String::new();
-        let mut elem = 1; // print 4 values in a row
-        for byte in self.data[0..self.length].iter() {
-            if elem % 4 == 0 {
-                values.push_str(&format!("\t0x{:01$X}\n", byte, 2));
-            } else {
-                values.push_str(&format!("\t0x{:01$X} ", byte, 2));
-            }
-            elem = elem + 1;
-        }
-        write!(f, "[\n{}\n]", values)
-    }
-}
 
 fn main() {
     let matches = App::new("nbtscan")
