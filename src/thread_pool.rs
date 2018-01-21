@@ -2,7 +2,7 @@ use std::thread;
 use std::vec::Vec;
 
 pub struct ThreadPool {
-    threads: Vec<thread::JoinHandle<()>
+    threads: Vec<thread::JoinHandle<()>>
 }
 
 impl ThreadPool {
@@ -16,7 +16,7 @@ impl ThreadPool {
     pub fn new(size: u32) -> ThreadPool {
         assert!(size > 0);
 
-        let mut threads = Vec::with_capacity(size); 
+        let mut threads = Vec::with_capacity(size as usize); 
 
         ThreadPool {
             threads
