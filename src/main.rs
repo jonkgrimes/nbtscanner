@@ -22,7 +22,7 @@ const RESPONSE_BASE_LEN: usize = 57;
 const RESPONSE_NAME_LEN: usize = 15;
 const RESPONSE_NAME_BLOCK_LEN: usize = 18;
 const TIMEOUT_SECONDS: u64 = 2;
-const DEFAULT_THREADS: u32 = 8;
+const DEFAULT_THREADS: usize = 8;
 
 fn main() {
     let matches = App::new("nbtscan")
