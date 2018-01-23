@@ -7,6 +7,7 @@ use std::vec::Vec;
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: mpsc::Sender<Job>,
+    receiver: Arc<Mutex<mpsc::Receiver<Job>>>,
 }
 
 impl ThreadPool {
@@ -33,6 +34,7 @@ impl ThreadPool {
         ThreadPool {
             workers,
             sender,
+            receiver,
         }
     }
 
@@ -65,6 +67,7 @@ struct Worker {
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
         let thread = thread::spawn(move || {
+            println!("Worker thread {} spawned!", id);
             loop {
                let job = receiver.lock().unwrap().recv().unwrap();
 

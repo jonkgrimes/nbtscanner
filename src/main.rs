@@ -50,15 +50,15 @@ fn main() {
 
             let mut buf: [u8; 1024] = [0; 1024];
             socket.connect((ip, NET_BIOS_PORT)).ok().expect("Couldn't connect to remote server");
-            println!("Requesting info from {}", ip);
+            // println!("Requesting info from {}", ip);
             socket.send(&MESSAGE).ok().expect("Couldn't send data");
-            println!("Waiting for response");
+            // println!("Waiting for response");
 
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {
                     let packet = NetBiosPacket { data: buf.clone(), length: number_of_bytes };
-                    println!("{} bytes received", number_of_bytes);
-                    println!("{}", packet);
+                    // println!("{} bytes received", number_of_bytes);
+                    // println!("{}", packet);
                     println!("{}\t{}\t{}", ip, get_name_from_data(&buf), get_block_from_data(&buf));
                 },
                 Err(error) => {
@@ -67,6 +67,8 @@ fn main() {
             }
         });
     }
+
+    println!("Loop finished exiting");
 }
 
 
