@@ -2,6 +2,7 @@ extern crate clap;
 
 use std::time::{Duration};
 use std::net::UdpSocket;
+use std::sync::mpsc;
 
 use clap::{App, Arg};
 
@@ -43,6 +44,7 @@ fn main() {
 
     for ip in ips {
         pool.execute(move || {
+            println!("Bind socket for {}", ip);
             // bind to port 0 and let the OS decide
             let socket = UdpSocket::bind("0.0.0.0:0").expect("Couldn't bind UDP socket");
             // timeout after 2 seconds
@@ -65,6 +67,8 @@ fn main() {
                     println!("Encountered an error when contacting {}: {:?}", ip, error);
                 }
             }
+            
+            ()
         });
     }
 

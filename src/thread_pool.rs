@@ -1,13 +1,11 @@
 use std::thread;
 use std::sync::mpsc;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, Barrier};
 use std::vec::Vec;
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: mpsc::Sender<Job>,
-    receiver: Arc<Mutex<mpsc::Receiver<Job>>>,
 }
 
 impl ThreadPool {
@@ -34,7 +32,6 @@ impl ThreadPool {
         ThreadPool {
             workers,
             sender,
-            receiver,
         }
     }
 
