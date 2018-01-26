@@ -6,6 +6,7 @@ use std::vec::Vec;
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: mpsc::Sender<Job>,
+    job_count: Arc<Mutex<u8>>,
 }
 
 impl ThreadPool {
@@ -25,13 +26,16 @@ impl ThreadPool {
 
         let mut workers = Vec::with_capacity(size);
 
+        let job_count = Arc::new(Mutex::new(0));
+
         for id in 0..size {
-            workers.push(Worker::new(id, Arc::clone(&receiver)));
+            workers.push(Worker::new(id, Arc::clone(&receiver), Arc::clone(&job_count)));
         }
 
         ThreadPool {
             workers,
             sender,
+            job_count,
         }
     }
 
@@ -40,7 +44,12 @@ impl ThreadPool {
     {
         let job = Box::new(f);
 
+        // Send the job
         self.sender.send(job).unwrap();
+        
+        // Increment the number of jobs
+        let mut count = self.job_count.lock().unwrap();
+        *count +=1 ;
     }
 
     pub fn join_all(self) {
@@ -68,13 +77,24 @@ struct Worker {
 }
 
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>, job_count: Arc<Mutex<u8>>) -> Worker {
         let thread = thread::spawn(move || {
             println!("Worker thread {} spawned!", id);
             loop {
+               // Get the number of jobs
+               let mut count = job_count.lock().unwrap();
+               if *count <= 0 { // No more jobs, exit
+                 break;
+               }
+               
+               // Looks like there's some in the queue, grab the next one
                let job = receiver.lock().unwrap().recv().unwrap();
 
+               // Execite the closure from execute
                job.call_box();
+
+               // Decrement the jobs count
+               *count -= 1;
             }
         });
 
