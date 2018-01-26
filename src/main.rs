@@ -2,7 +2,6 @@ extern crate clap;
 
 use std::time::{Duration};
 use std::net::UdpSocket;
-use std::sync::mpsc;
 
 use clap::{App, Arg};
 
@@ -19,9 +18,6 @@ const MESSAGE: [u8; 50] = [0xA2, 0x48, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
                            0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
                            0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x00, 0x00, 0x21,
                            0x00, 0x01];
-const RESPONSE_BASE_LEN: usize = 57;
-const RESPONSE_NAME_LEN: usize = 15;
-const RESPONSE_NAME_BLOCK_LEN: usize = 18;
 const TIMEOUT_SECONDS: u64 = 2;
 const DEFAULT_THREADS: usize = 8;
 
@@ -61,7 +57,7 @@ fn main() {
                     let packet = NetBiosPacket { data: buf.clone(), length: number_of_bytes };
                     // println!("{} bytes received", number_of_bytes);
                     // println!("{}", packet);
-                    println!("{}\t{}\t{}", ip, get_name_from_data(&buf), get_block_from_data(&buf));
+                    println!("{}\t{}\t{}", ip, packet.name(), packet.block());
                 },
                 Err(error) => {
                     println!("Encountered an error when contacting {}: {:?}", ip, error);
@@ -73,33 +69,7 @@ fn main() {
     }
 
     println!("Loop finished exiting");
-}
 
-
-fn get_name_from_data(data: &[u8]) -> String {
-    let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN;
-    let name_range = RESPONSE_BASE_LEN..offset;
-    let name_bytes = Vec::from(&data[name_range]);
-
-    match String::from_utf8(name_bytes) {
-        Ok(name) => name,
-        Err(_) => {
-            println!("Couldn't decode the name");
-            String::from("N/A")
-        }
-    }
-}
-
-fn get_block_from_data(data: &[u8]) -> String {
-    let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN;
-    let block_range = offset..(offset + RESPONSE_NAME_BLOCK_LEN);
-    let block_bytes = Vec::from(&data[block_range]);
-
-    match String::from_utf8(block_bytes) {
-        Ok(name) => name,
-        Err(_) => {
-            println!("Couldn't decode the name block");
-            String::from("")
-        }
-    }
+    // Wait for all worker threads to stop
+    pool.join_all();
 }

@@ -1,6 +1,10 @@
 use std::fmt;
 use std::fmt::Display;
 
+const RESPONSE_BASE_LEN: usize = 57;
+const RESPONSE_NAME_LEN: usize = 15;
+const RESPONSE_NAME_BLOCK_LEN: usize = 18;
+
 pub struct NetBiosPacket {
     pub data: [u8; 1024],
     pub length: usize
@@ -20,4 +24,36 @@ impl Display for NetBiosPacket {
         }
         write!(f, "[\n{}\n]", values)
     }
+}
+
+impl NetBiosPacket {
+
+    pub fn name(&self) -> String {
+        let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN;
+        let name_range = RESPONSE_BASE_LEN..offset;
+        let name_bytes = Vec::from(&self.data[name_range]);
+
+        match String::from_utf8(name_bytes) {
+            Ok(name) => name,
+            Err(_) => {
+                println!("Couldn't decode the name");
+                String::from("N/A")
+            }
+        }
+    }
+
+    pub fn block(&self) -> String {
+        let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN;
+        let block_range = offset..(offset + RESPONSE_NAME_BLOCK_LEN);
+        let block_bytes = Vec::from(&self.data[block_range]);
+
+        match String::from_utf8(block_bytes) {
+            Ok(name) => name,
+            Err(_) => {
+                println!("Couldn't decode the name block");
+                String::from("")
+            }
+        }
+    }
+
 }

@@ -1,6 +1,6 @@
 use std::thread;
 use std::sync::mpsc;
-use std::sync::{Arc, Mutex, Barrier};
+use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 
 pub struct ThreadPool {
@@ -42,6 +42,12 @@ impl ThreadPool {
 
         self.sender.send(job).unwrap();
     }
+
+    pub fn join_all(self) {
+        for worker in self.workers {
+            worker.join()
+        }
+    }
 }
 
 trait FnBox {
@@ -76,5 +82,9 @@ impl Worker {
             id,
             thread,
         }
+    }
+
+    fn join(self) {
+        self.thread.join();
     }
 }
