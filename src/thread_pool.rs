@@ -1,12 +1,13 @@
 use std::thread;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::vec::Vec;
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: mpsc::Sender<Job>,
-    job_count: Arc<Mutex<u8>>,
+    job_count: Arc<AtomicUsize>,
 }
 
 impl ThreadPool {
@@ -26,7 +27,7 @@ impl ThreadPool {
 
         let mut workers = Vec::with_capacity(size);
 
-        let job_count = Arc::new(Mutex::new(0));
+        let job_count = Arc::new(AtomicUsize::new(0));
 
         for id in 0..size {
             workers.push(Worker::new(id, Arc::clone(&receiver), Arc::clone(&job_count)));
@@ -48,8 +49,7 @@ impl ThreadPool {
         self.sender.send(job).unwrap();
         
         // Increment the number of jobs
-        let mut count = self.job_count.lock().unwrap();
-        *count +=1 ;
+        self.job_count.fetch_add(1, Ordering::Acquire);
     }
 
     pub fn join_all(self) {
@@ -77,24 +77,28 @@ struct Worker {
 }
 
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>, job_count: Arc<Mutex<u8>>) -> Worker {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>, job_count: Arc<AtomicUsize>) -> Worker {
         let thread = thread::spawn(move || {
             println!("Worker thread {} spawned!", id);
             loop {
                // Get the number of jobs
-               let mut count = job_count.lock().unwrap();
-               if *count <= 0 { // No more jobs, exit
-                 break;
+               let count = job_count.load(Ordering::Relaxed);
+               println!("job_count = {}", count);
+               if count == 0 {
+                   println!("job_count == 0, exiting thread {}", id);
+                   break;
                }
                
+               println!("Looking for jobs");
                // Looks like there's some in the queue, grab the next one
                let job = receiver.lock().unwrap().recv().unwrap();
 
-               // Execite the closure from execute
+
+               // Execute the closure from execute
                job.call_box();
 
                // Decrement the jobs count
-               *count -= 1;
+               job_count.fetch_sub(1, Ordering::Acquire);
             }
         });
 
