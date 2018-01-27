@@ -38,12 +38,13 @@ fn main() {
 
     let pool = ThreadPool::new(DEFAULT_THREADS);
 
+    let verbose = false;
+
     for ip in ips {
         pool.execute(move || {
-            println!("Bind socket for {}", ip);
             // bind to port 0 and let the OS decide
             let socket = UdpSocket::bind("0.0.0.0:0").expect("Couldn't bind UDP socket");
-            // timeout after 2 seconds
+            // timeout connection after 2 seconds
             socket.set_read_timeout(Some(Duration::new(TIMEOUT_SECONDS, 0))).ok();
 
             let mut buf: [u8; 1024] = [0; 1024];
@@ -60,15 +61,15 @@ fn main() {
                     println!("{}\t{}\t{}", ip, packet.name(), packet.block());
                 },
                 Err(error) => {
-                    println!("Encountered an error when contacting {}: {:?}", ip, error);
+                    if verbose {
+                        println!("Encountered an error when contacting {}: {:?}", ip, error);
+                    }
                 }
             }
             
             ()
         });
     }
-
-    println!("Loop finished exiting");
 
     // Wait for all worker threads to stop
     pool.join_all();
