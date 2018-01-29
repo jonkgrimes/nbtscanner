@@ -41,6 +41,7 @@ fn main() {
     let verbose = false;
 
     for ip in ips {
+        // These are executed asynchronously 
         pool.execute(move || {
             // bind to port 0 and let the OS decide
             let socket = UdpSocket::bind("0.0.0.0:0").expect("Couldn't bind UDP socket");
@@ -58,7 +59,7 @@ fn main() {
                     let packet = NetBiosPacket { data: buf.clone(), length: number_of_bytes };
                     // println!("{} bytes received", number_of_bytes);
                     // println!("{}", packet);
-                    println!("{}\t{}\t{}", ip, packet.name(), packet.block());
+                    println!("{ip}\t{group}\\{name}", ip=ip, group=packet.group(), name=packet.name());
                 },
                 Err(error) => {
                     if verbose {
