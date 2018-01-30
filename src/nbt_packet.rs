@@ -56,4 +56,16 @@ impl NetBiosPacket {
         }
     }
 
+    pub fn mac_address(&self) -> String {
+        let name_count = &self.data[RESPONSE_BASE_LEN - 1] & 0xff;
+        let mut name_bytes: [u8; 6] = [0; 6];
+        for n in 0..6 {
+            let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN * (name_count as usize) + n;
+            let name_byte = &self.data[offset] & 0xff;
+            name_bytes[n] = name_byte;
+        }
+        format!("{:X}:{:X}:{:X}:{:X}:{:X}:{:X}", name_bytes[0], name_bytes[1],
+                                                name_bytes[2], name_bytes[3],
+                                                name_bytes[4], name_bytes[5])
+    }
 }

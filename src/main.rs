@@ -59,7 +59,11 @@ fn main() {
                     let packet = NetBiosPacket { data: buf.clone(), length: number_of_bytes };
                     // println!("{} bytes received", number_of_bytes);
                     // println!("{}", packet);
-                    println!("{ip}\t{group}\\{name}", ip=ip, group=packet.group(), name=packet.name());
+                    println!("{ip}\t{group}\\{name}\t{mac}",
+                        ip=ip,
+                        group=packet.group(),
+                        name=packet.name(),
+                        mac=packet.mac_address());
                 },
                 Err(error) => {
                     if verbose {
