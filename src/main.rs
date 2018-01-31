@@ -19,7 +19,7 @@ const MESSAGE: [u8; 50] = [0xA2, 0x48, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
                            0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x00, 0x00, 0x21,
                            0x00, 0x01];
 const TIMEOUT_SECONDS: u64 = 2;
-const DEFAULT_THREADS: usize = 8;
+const DEFAULT_THREADS: usize = 100;
 
 fn main() {
     let matches = App::new("nbtscan")
@@ -57,7 +57,7 @@ fn main() {
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {
                     let packet = NetBiosPacket { data: buf.clone(), length: number_of_bytes };
-                    println!("{} bytes received", number_of_bytes);
+                    // println!("{} bytes received", number_of_bytes);
                     // println!("{}", packet);
                     println!("{ip}\t{group}\\{name}\t{mac}",
                         ip=ip,
