@@ -57,7 +57,7 @@ fn main() {
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {
                     let packet = NetBiosPacket { data: buf.clone(), length: number_of_bytes };
-                    // println!("{} bytes received", number_of_bytes);
+                    println!("{} bytes received", number_of_bytes);
                     // println!("{}", packet);
                     println!("{ip}\t{group}\\{name}\t{mac}",
                         ip=ip,
