@@ -41,6 +41,7 @@ fn main() {
     let verbose = false;
 
     for ip in ips {
+        // This closure here requires a Option<NetBiosPacket> to be returned
         // These are executed asynchronously 
         pool.execute(move || {
             // bind to port 0 and let the OS decide
@@ -56,26 +57,30 @@ fn main() {
 
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {
-                    let packet = NetBiosPacket { data: buf.clone(), length: number_of_bytes };
+                    let packet = NetBiosPacket { ip: ip, data: buf.clone(), length: number_of_bytes };
                     // println!("{} bytes received", number_of_bytes);
                     // println!("{}", packet);
-                    println!("{ip}\t{group}\\{name}\t{mac}",
-                        ip=ip,
-                        group=packet.group(),
-                        name=packet.name(),
-                        mac=packet.mac_address());
+                    Some(packet)
                 },
                 Err(error) => {
                     if verbose {
                         println!("Encountered an error when contacting {}: {:?}", ip, error);
-                    }
+                    };
+                    None
                 }
             }
             
-            ()
         });
     }
 
     // Wait for all worker threads to stop
-    pool.join_all();
+    let results = pool.join_all();
+
+    for packet in results {
+        println!("{ip}\t{group}\\{name}\t{mac}",
+            ip=packet.ip,
+            group=packet.group(),
+            name=packet.name(),
+            mac=packet.mac_address());
+    }
 }

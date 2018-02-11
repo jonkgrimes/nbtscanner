@@ -1,11 +1,13 @@
 use std::fmt;
 use std::fmt::Display;
+use std::net::Ipv4Addr;
 
 const RESPONSE_BASE_LEN: usize = 57;
 const RESPONSE_NAME_LEN: usize = 15;
 const RESPONSE_NAME_BLOCK_LEN: usize = 18;
 
 pub struct NetBiosPacket {
+    pub ip: Ipv4Addr,
     pub data: [u8; 1024],
     pub length: usize
 } 

@@ -3,6 +3,7 @@ use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 use std::time::Duration;
+use nbt_packet::NetBiosPacket;
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
@@ -37,7 +38,7 @@ impl ThreadPool {
     }
 
     pub fn execute<F>(&self, f: F)
-        where F: FnOnce() + Send + 'static
+        where F: (FnOnce() -> Option<NetBiosPacket>) + Send + 'static
     {
         let job = Box::new(f);
 
@@ -45,19 +46,21 @@ impl ThreadPool {
         self.sender.send(job).unwrap();
     }
 
-    pub fn join_all(self) {
+    pub fn join_all(self) -> Vec<NetBiosPacket> {
+        let mut results: Vec<NetBiosPacket> = Vec::with_capacity(255);
         for worker in self.workers {
-            worker.join()
+            results.append(&mut worker.join());
         }
+        results
     }
 }
 
 trait FnBox {
-    fn call_box(self: Box<Self>);
+    fn call_box(self: Box<Self>) -> Option<NetBiosPacket>;
 }
 
-impl<F: FnOnce()> FnBox for F {
-    fn call_box(self: Box<F>) {
+impl<F: FnOnce() -> Option<NetBiosPacket>> FnBox for F {
+    fn call_box(self: Box<F>) -> Option<NetBiosPacket> {
         (*self)()
     }
 }
@@ -66,12 +69,13 @@ type Job = Box<FnBox + Send + 'static>;
 
 struct Worker {
     id: usize,
-    thread: thread::JoinHandle<()>,
+    thread: thread::JoinHandle<Vec<NetBiosPacket>>,
 }
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
         let thread = thread::spawn(move || {
+            let mut thread_results: Vec<NetBiosPacket> = Vec::with_capacity(4);
             loop {
                // Look for jobs for 100 ms, if there's no action
                // break out of the loop and finish thread execution
@@ -84,8 +88,12 @@ impl Worker {
 
 
                // Execute the closure from execute
-               job.call_box();
+               match job.call_box() {
+                   Some(packet) => thread_results.push(packet),
+                   _ => ()
+               }
             }
+            thread_results
         });
 
         Worker {
@@ -96,7 +104,7 @@ impl Worker {
 
     // Interface to allow calling thread to await execution of
     // workers
-    fn join(self) {
-        self.thread.join();
+    fn join(self) -> Vec<NetBiosPacket> {
+        self.thread.join().unwrap()
     }
 }
