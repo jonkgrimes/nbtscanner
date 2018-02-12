@@ -74,7 +74,8 @@ fn main() {
     }
 
     // Wait for all worker threads to stop
-    let results = pool.join_all();
+    let mut results = pool.join_all();
+    results.sort_by(|a,b| a.ip.cmp(&b.ip));
 
     for packet in results {
         println!("{ip}\t{group}\\{name}\t{mac}",

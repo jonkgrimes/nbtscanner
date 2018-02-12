@@ -79,7 +79,7 @@ impl Worker {
             loop {
                // Look for jobs for 100 ms, if there's no action
                // break out of the loop and finish thread execution
-               let job = match receiver.lock().unwrap().recv_timeout(Duration::from_millis(100)) {
+               let job = match receiver.lock().unwrap().recv_timeout(Duration::from_millis(10)) {
                    Ok(job) => job,
                    Err(_) => {
                        break;
