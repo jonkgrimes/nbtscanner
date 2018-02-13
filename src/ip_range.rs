@@ -2,6 +2,8 @@ use std::vec::Vec;
 use std::{u8, fmt};
 use std::str::FromStr;
 use std::net::Ipv4Addr;
+use std::error::Error;
+use self::IpParserError::*;
 
 pub fn parse_ip_string(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpParserError> {
     if ip_str.contains('-') {
@@ -13,15 +15,33 @@ pub fn parse_ip_string(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpParserEr
 
 #[derive(Debug)]
 pub enum IpParserError {
-    RangeError,
+    CidrNumberError,
+    IpRangeError,
     BaseIpError,
+}
+
+impl Error for IpParserError {
+    fn description(&self) -> &str {
+        match *self {
+            CidrNumberError => {
+                "The provided CIDR number cannot be greater than 32, and not less than 15"
+            }, 
+            IpRangeError => {
+                "The IP provided was not a valid IP (e.g. 268.1.2.3, is not valid because IPv4 addresses can only have values 0-255"
+            },
+            BaseIpError => {
+                "The IP provided was not a valid IP address"
+            }
+        }
+    }
 }
 
 impl fmt::Display for IpParserError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        self.fmt(f)
+        self.description().fmt(f)
     }
 }
+
 
 pub type IpParserResult<T, IpParserError> = Result<T, IpParserError>;
 
@@ -57,7 +77,7 @@ fn parse_ip_string_with_cidr(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpPa
         if range_str.len() == 2 {
             let bits = u8::from_str(range_str[1]).unwrap();
             if bits <= 15 || bits >= 30 {
-                return Err(IpParserError(IpRangeError, "The submitted IP range is not valid"));
+                return Err(IpParserError::CidrNumberError);
             }
             // need more robust error checking on this
             let start = u8::from_str(range_str[0]).unwrap(); 
@@ -72,6 +92,7 @@ fn parse_ip_string_with_cidr(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpPa
     }
     Ok(range)
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -96,8 +117,14 @@ mod tests {
     #[test]
     fn parse_invalid_cidr_range() {
         let str = "10.192.4.0/36";
-        let actual = parse_ip_string(str).unwrap();
-        let expected = 254; // excludes the 0 and 255 values as they are reserved
-        assert_eq!(actual.len(), expected);
+        let actual = parse_ip_string(str);
+        assert_matches!(actual, Err(IpParserError::CidrNumberError))
+    }
+
+    #[test]
+    fn parse_invalid_ip_address_returns_error() {
+        let str = "10.320.4.0/24";
+        let actual = parse_ip_string(str);
+        assert_matches!(actual, Err(IpParserError::IpRangeError))
     }
 }

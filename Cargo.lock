@@ -4,6 +4,11 @@ version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "assert_matches"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "atty"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -54,6 +59,7 @@ dependencies = [
 name = "sonar"
 version = "0.1.0"
 dependencies = [
+ "assert_matches 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.29.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -111,6 +117,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [metadata]
 "checksum ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6b3568b48b7cefa6b8ce125f9bb4989e52fbcc29ebea88df04cc7c5f12f70455"
+"checksum assert_matches 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9e772942dccdf11b368c31e044e4fca9189f80a773d2f0808379de65894cbf57"
 "checksum atty 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "8352656fd42c30a0c3c89d26dea01e3b77c0ab2af18230835c15e2e13cd51859"
 "checksum bitflags 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b3c30d3802dfb7281680d6285f2ccdaa8c2d8fee41f93805dba5c4cf50dc23cf"
 "checksum clap 2.29.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8f4a2b3bb7ef3c672d7c13d15613211d5a6976b6892c598b0fcb5d40765f19c2"

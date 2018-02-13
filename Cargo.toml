@@ -5,3 +5,4 @@ authors = ["Jon Grimes <jong@spiceworks.com>"]
 
 [dependencies]
 clap = "2.29.1"
+assert_matches = "1.1"
