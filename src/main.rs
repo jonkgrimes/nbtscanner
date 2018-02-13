@@ -34,7 +34,13 @@ fn main() {
 
     let raw_ip_str = matches.value_of("RANGE").unwrap();
 
-    let ips = ip_range::parse_ip_string(raw_ip_str);
+    let ips = match ip_range::parse_ip_string(raw_ip_str) {
+        Ok(ip_range) => ip_range,
+        Err(e) => {
+            println!("{}", e);
+            std::process::exit(-1)
+        }
+    };
 
     let pool = ThreadPool::new(DEFAULT_THREADS);
 
