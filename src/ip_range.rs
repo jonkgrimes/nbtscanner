@@ -55,6 +55,10 @@ fn parse_ip_string_with_cidr(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpPa
         // tokens = ["192", "168", "4", "0/24"]
         // range_str = ["0", "24"]
         if range_str.len() == 2 {
+            let bits = u8::from_str(range_str[1]).unwrap();
+            if bits <= 15 || bits >= 30 {
+                return Err(IpParserError(IpRangeError, "The submitted IP range is not valid"));
+            }
             // need more robust error checking on this
             let start = u8::from_str(range_str[0]).unwrap(); 
             let end = u8::from_str(range_str[1]).unwrap();
