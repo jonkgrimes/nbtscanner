@@ -6,6 +6,7 @@ use std::error::Error;
 use self::IpParserError::*;
 
 pub fn parse_ip_string(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpParserError> {
+    // let's check for non-good characters here
     if ip_str.contains('-') {
         parse_ip_string_with_dash(ip_str)
     } else {
@@ -76,7 +77,7 @@ fn parse_ip_string_with_cidr(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpPa
         // range_str = ["0", "24"]
         if range_str.len() == 2 {
             let bits = u8::from_str(range_str[1]).unwrap();
-            if bits <= 15 || bits >= 30 {
+            if bits < 15 || bits > 30 {
                 return Err(IpParserError::CidrNumberError);
             }
             // need more robust error checking on this
@@ -99,6 +100,11 @@ mod tests {
     use super::*;
 
     #[test]
+    fn parse_string_to_ip_address() {
+
+    }
+
+    #[test]
     fn parse_dashed_string_into_range() {
         let str = "10.192.4.35-37";
         let expected = vec!(Ipv4Addr::new(10, 192, 4, 35), Ipv4Addr::new(10, 192, 4, 36), Ipv4Addr::new(10, 192, 4, 37));
@@ -110,6 +116,14 @@ mod tests {
     fn parse_cidr_notation_into_range() {
         let str = "10.192.4.0/24";
         let expected = 254; // excludes the 0 and 255 values as they are reserved
+        let actual = parse_ip_string(str).unwrap();
+        assert_eq!(actual.len(), expected);
+    }
+
+    #[test]
+    fn cidr_notation_can_handle_large_host_range() {
+        let str = "10.192.4.0/15";
+        let expected = 131070;
         let actual = parse_ip_string(str).unwrap();
         assert_eq!(actual.len(), expected);
     }
