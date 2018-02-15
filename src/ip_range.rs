@@ -1,5 +1,5 @@
 use std::vec::Vec;
-use std::{u8, fmt};
+use std::{u8, u32, fmt};
 use std::str::FromStr;
 use std::net::Ipv4Addr;
 use std::error::Error;
@@ -82,6 +82,11 @@ fn parse_ip_string_with_cidr(base_ip: Ipv4Addr, mask: u8) -> IpParserResult<Vec<
     if mask < 15 || mask > 29 {
         return Err(IpParserError::CidrNumberError)
     }
+    let raw_ip = u32::from(base_ip);
+    let bit_range = (1u32 << mask) as u32;
+    let start = raw_ip & bit_range;
+    let end = (raw_ip | mask as u32) & (mask as u32);
+    println!("start = {}, end = {}", Ipv4Addr::from(start), Ipv4Addr::from(end));
     let mut range: Vec<Ipv4Addr> = Vec::new();
     Ok(range)
 }
