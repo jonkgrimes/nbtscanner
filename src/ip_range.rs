@@ -6,11 +6,32 @@ use std::error::Error;
 use self::IpParserError::*;
 
 pub fn parse_ip_string(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpParserError> {
-    // let's check for non-good characters here
+    // check base ip
     if ip_str.contains('-') {
-        parse_ip_string_with_dash(ip_str)
-    } else {
-        parse_ip_string_with_cidr(ip_str)
+        let tokens: Vec<&str> = ip_str.split('-').collect();
+        let base_ip = match Ipv4Addr::from_str(tokens[0]) {
+            Ok(ip) => ip,
+            Err(_) => {
+                return Err(IpParserError::BaseIpError)
+            }
+        };
+        let last_octet = u8::from_str(tokens[1]).unwrap(); // need to handle this
+        parse_ip_string_with_dash(base_ip, last_octet)
+    } else if ip_str.contains('/') {
+        let tokens: Vec<&str> = ip_str.split('/').collect();
+        let base_ip = match Ipv4Addr::from_str(tokens[0]) {
+            Ok(ip) => ip,
+            Err(_) => {
+                return Err(IpParserError::BaseIpError)
+            }
+        };
+        let mask = u8::from_str(tokens[1]).unwrap();
+        parse_ip_string_with_cidr(base_ip, mask)
+    } else { // Single IP strings
+        match Ipv4Addr::from_str(ip_str) {
+            Ok(ip) => Ok(vec!(ip)),
+            Err(_) => Err(IpParserError::BaseIpError)
+        }
     }
 }
 
@@ -31,7 +52,7 @@ impl Error for IpParserError {
                 "The IP provided was not a valid IP (e.g. 268.1.2.3, is not valid because IPv4 addresses can only have values 0-255"
             },
             BaseIpError => {
-                "The IP provided was not a valid IP address"
+                "The base IP provided was not a valid IP address"
             }
         }
     }
@@ -46,51 +67,22 @@ impl fmt::Display for IpParserError {
 
 pub type IpParserResult<T, IpParserError> = Result<T, IpParserError>;
 
-fn parse_ip_string_with_dash(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpParserError> {
+fn parse_ip_string_with_dash(base_ip: Ipv4Addr, ending_octet: u8) -> IpParserResult<Vec<Ipv4Addr>, IpParserError> {
     let mut range: Vec<Ipv4Addr> = Vec::new();
-    let tokens: Vec<&str> = ip_str.split('.').collect();
-    if tokens.len() == 4 { 
-        let range_str: Vec<&str> = tokens[3].split('-').collect();
-        if range_str.len() == 2 {
-            // need more robust error checking on this
-            let start = u8::from_str(range_str[0]).unwrap(); 
-            let end = u8::from_str(range_str[1]).unwrap();
-            let first_octet = u8::from_str(tokens[0]).unwrap();
-            let second_octet = u8::from_str(tokens[1]).unwrap();
-            let third_octet = u8::from_str(tokens[2]).unwrap();
-            for n in start..(end+1) {
-                range.push(Ipv4Addr::new(first_octet, second_octet, third_octet, n));
-            }
-        }
+    let starting_octet = base_ip.octets()[3];
+    for n in starting_octet..(ending_octet+1) {
+        let mut octets = base_ip.octets().clone();
+        octets[3] = n;
+        range.push(Ipv4Addr::from(octets));
     }
     Ok(range)
 }
 
-fn parse_ip_string_with_cidr(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpParserError> {
-    let mut range: Vec<Ipv4Addr> = Vec::new();
-    // 192.168.4.0/24
-    let tokens: Vec<&str> = ip_str.split('.').collect();
-    // ["192","168","4","0/24"]
-    if tokens.len() == 4 { 
-        let range_str: Vec<&str> = tokens[3].split('/').collect();
-        // tokens = ["192", "168", "4", "0/24"]
-        // range_str = ["0", "24"]
-        if range_str.len() == 2 {
-            let bits = u8::from_str(range_str[1]).unwrap();
-            if bits < 15 || bits > 30 {
-                return Err(IpParserError::CidrNumberError);
-            }
-            // need more robust error checking on this
-            let start = u8::from_str(range_str[0]).unwrap(); 
-            let end = u8::from_str(range_str[1]).unwrap();
-            let first_octet = u8::from_str(tokens[0]).unwrap();
-            let second_octet = u8::from_str(tokens[1]).unwrap();
-            let third_octet = u8::from_str(tokens[2]).unwrap();
-            for n in start..(end + 1) {
-                range.push(Ipv4Addr::new(first_octet, second_octet, third_octet, n));
-            }
-        }
+fn parse_ip_string_with_cidr(base_ip: Ipv4Addr, mask: u8) -> IpParserResult<Vec<Ipv4Addr>, IpParserError> {
+    if mask < 15 || mask > 29 {
+        return Err(IpParserError::CidrNumberError)
     }
+    let mut range: Vec<Ipv4Addr> = Vec::new();
     Ok(range)
 }
 
@@ -101,7 +93,10 @@ mod tests {
 
     #[test]
     fn parse_string_to_ip_address() {
-
+        let str = "10.192.4.35";
+        let expected = vec!(Ipv4Addr::new(10, 192, 4, 35));
+        let actual = parse_ip_string(str).unwrap();
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -136,9 +131,9 @@ mod tests {
     }
 
     #[test]
-    fn parse_invalid_ip_address_returns_error() {
+    fn parse_invalid_base_ip_address_returns_error() {
         let str = "10.320.4.0/24";
         let actual = parse_ip_string(str);
-        assert_matches!(actual, Err(IpParserError::IpRangeError))
+        assert_matches!(actual, Err(IpParserError::BaseIpError))
     }
 }
