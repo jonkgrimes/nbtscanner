@@ -83,14 +83,19 @@ fn parse_ip_string_with_cidr(base_ip: Ipv4Addr, mask: u8) -> IpParserResult<Vec<
         return Err(IpParserError::CidrNumberError)
     }
     let raw_ip = u32::from(base_ip);
-    let bit_range = (1u32 << mask) as u32;
-    let start = raw_ip & bit_range;
-    let end = (raw_ip | mask as u32) & (mask as u32);
-    println!("start = {}, end = {}", Ipv4Addr::from(start), Ipv4Addr::from(end));
+    let mut bin_mask = 0u32;
+    for _ in 0..(32-mask) { // lookup table might be better here
+        bin_mask <<= 1; // is there no way to do this in one step?
+        bin_mask |= 1;
+    }
+    let start = raw_ip & !bin_mask;
+    let end = raw_ip | bin_mask;
     let mut range: Vec<Ipv4Addr> = Vec::new();
+    for n in start..(end-1) {
+        range.push(Ipv4Addr::from(n));
+    }
     Ok(range)
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -114,7 +119,7 @@ mod tests {
 
     #[test]
     fn parse_cidr_notation_into_range() {
-        let str = "10.192.4.0/24";
+        let str = "10.192.4.1/24";
         let expected = 254; // excludes the 0 and 255 values as they are reserved
         let actual = parse_ip_string(str).unwrap();
         assert_eq!(actual.len(), expected);
@@ -122,7 +127,7 @@ mod tests {
 
     #[test]
     fn cidr_notation_can_handle_large_host_range() {
-        let str = "10.192.4.0/15";
+        let str = "10.192.4.2/15";
         let expected = 131070;
         let actual = parse_ip_string(str).unwrap();
         assert_eq!(actual.len(), expected);
@@ -130,7 +135,7 @@ mod tests {
 
     #[test]
     fn parse_invalid_cidr_range() {
-        let str = "10.192.4.0/36";
+        let str = "10.192.4.5/36";
         let actual = parse_ip_string(str);
         assert_matches!(actual, Err(IpParserError::CidrNumberError))
     }
