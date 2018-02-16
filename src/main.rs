@@ -47,6 +47,8 @@ fn main() {
 
     let verbose = false;
 
+    println!("Scanning {} IP's", ips.len());
+
     for ip in ips {
         // This closure here requires a Option<NetBiosPacket> to be returned
         // These are executed asynchronously 
