@@ -23,15 +23,20 @@ const TIMEOUT_SECONDS: u64 = 2;
 const DEFAULT_THREADS: usize = 100;
 
 fn main() {
-    let matches = App::new("nbtscan")
+    let matches = App::new("nbtscanner")
         .version("0.1")
         .author("Jon Grimes <jonkgrimes@gmail.com>")
         .about("Scans the given IP address range for NetBIOS information")
         .arg(Arg::with_name("RANGE")
-            .help("The IP address/range")
+            .help("The IP address/range. This can be either be a range using the CIDR format (e.g. 10.10.1.2/24) or using a dash \
+                  (e.g. 10.10.2.1-254")
             .required(true)
-        )
-        .get_matches();
+        ).arg(Arg::with_name("verbose")
+            .short("v")
+            .long("verbose")
+            .help("Turn on verbose logging")
+            .required(false)
+        ).get_matches();
 
     let raw_ip_str = matches.value_of("RANGE").unwrap();
 
@@ -45,7 +50,7 @@ fn main() {
 
     let pool = ThreadPool::new(DEFAULT_THREADS);
 
-    let verbose = false;
+    let verbose = matches.is_present("verbose");
 
     println!("Scanning {} IP's", ips.len());
 
@@ -60,9 +65,10 @@ fn main() {
 
             let mut buf: [u8; 1024] = [0; 1024];
             socket.connect((ip, NET_BIOS_PORT)).ok().expect("Couldn't connect to remote server");
-            // println!("Requesting info from {}", ip);
+            if verbose {
+                println!("Contacting {}", ip);
+            }
             socket.send(&MESSAGE).ok().expect("Couldn't send data");
-            // println!("Waiting for response");
 
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {
