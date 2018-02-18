@@ -56,7 +56,7 @@ fn main() {
 
     for ip in ips {
         // This closure here requires a Option<NetBiosPacket> to be returned
-        // These are executed asynchronously 
+        // These are executed asynchronously by the thread pool
         pool.execute(move || {
             // bind to port 0 and let the OS decide
             let socket = UdpSocket::bind("0.0.0.0:0").expect("Couldn't bind UDP socket");
@@ -74,7 +74,8 @@ fn main() {
                 Ok(number_of_bytes) => {
                     let packet = NetBiosPacket { ip: ip, data: buf.clone(), length: number_of_bytes };
                     // println!("{} bytes received", number_of_bytes);
-                    // println!("{}", packet);
+                    println!("{}", ip);
+                    println!("{}", packet);
                     Some(packet)
                 },
                 Err(error) => {
@@ -93,7 +94,7 @@ fn main() {
     results.sort_by(|a,b| a.ip.cmp(&b.ip)); // NOTE: This sort is in place hence the `mut` on results
 
     for packet in results {
-        println!("{ip}\t{group}\\{name}\t{mac}",
+        println!("{ip:>15}{group:>30}\\{name:>15}\t{mac:>15}",
             ip=packet.ip,
             group=packet.group(),
             name=packet.name(),

@@ -70,3 +70,23 @@ impl NetBiosPacket {
                                                 name_bytes[4], name_bytes[5])
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_name_and_group_from_data_correctly() {
+       let expected = "SPICE\\JACKIEG-WS";                 
+    }
+
+    #[test]
+    fn parse_mac_from_data_correctly() {
+        let expected = "2c:41:38:ba:c3:64";
+    }
+
+    #[test]
+    fn parse_services_from_data_correctly() {
+        let expected = "SHARING";
+    }
+}
