@@ -94,8 +94,8 @@ fn main() {
     results.sort_by(|a,b| a.ip.cmp(&b.ip)); // NOTE: This sort is in place hence the `mut` on results
 
     for packet in results {
-        println!("{ip:>15}{group:>30}\\{name:>15}\t{mac:>15}",
-            ip=packet.ip,
+        println!("{ip:<15}{group:<15}\\{name:<15}{mac:<15}",
+            ip=format!("{}", packet.ip),
             group=packet.group(),
             name=packet.name(),
             mac=packet.mac_address());

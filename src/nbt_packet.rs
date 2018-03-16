@@ -45,7 +45,7 @@ impl NetBiosPacket {
     }
 
     pub fn group(&self) -> String {
-        let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN;
+        let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN + 1;
         let block_range = offset..(offset + RESPONSE_NAME_BLOCK_LEN);
         let block_bytes = Vec::from(&self.data[block_range]);
 
