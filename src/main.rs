@@ -52,7 +52,7 @@ fn main() {
 
     let verbose = matches.is_present("verbose");
 
-    println!("Scanning {} IP's", ips.len());
+    println!("Scanning from {} to {} ({} total)", ips.first().unwrap(), ips.last().unwrap(), ips.len());
 
     for ip in ips {
         // This closure here requires a Option<NetBiosPacket> to be returned
@@ -72,10 +72,10 @@ fn main() {
 
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {
-                    let packet = NetBiosPacket { ip: ip, data: buf.clone(), length: number_of_bytes };
+                    let packet = NetBiosPacket::from(ip, buf.clone(), number_of_bytes);
                     // println!("{} bytes received", number_of_bytes);
-                    println!("{}", ip);
-                    println!("{}", packet);
+                    // println!("{}", ip);
+                    // println!("{}", packet);
                     Some(packet)
                 },
                 Err(error) => {
