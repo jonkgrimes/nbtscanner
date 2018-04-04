@@ -1,9 +1,9 @@
-use std::thread;
+use nbt_packet::NetBiosPacket;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
-use std::vec::Vec;
+use std::thread;
 use std::time::Duration;
-use nbt_packet::NetBiosPacket;
+use std::vec::Vec;
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
@@ -12,11 +12,11 @@ pub struct ThreadPool {
 
 impl ThreadPool {
     /// Creates a new thread pool
-    /// 
+    ///
     /// The size is the number of threads in the pool.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// The `new` function will panic if size is zero or below.
     pub fn new(size: usize) -> ThreadPool {
         assert!(size > 0);
@@ -31,14 +31,12 @@ impl ThreadPool {
             workers.push(Worker::new(id, Arc::clone(&receiver)));
         }
 
-        ThreadPool {
-            workers,
-            sender,
-        }
+        ThreadPool { workers, sender }
     }
 
     pub fn execute<F>(&self, f: F)
-        where F: (FnOnce() -> Option<NetBiosPacket>) + Send + 'static
+    where
+        F: FnOnce() -> Option<NetBiosPacket> + Send + 'static,
     {
         let job = Box::new(f);
 
@@ -77,29 +75,29 @@ impl Worker {
         let thread = thread::spawn(move || {
             let mut thread_results: Vec<NetBiosPacket> = Vec::with_capacity(4);
             loop {
-               // Look for jobs for 100 ms, if there's no action
-               // break out of the loop and finish thread execution
-               let job = match receiver.lock().unwrap().recv_timeout(Duration::from_millis(10)) {
-                   Ok(job) => job,
-                   Err(_) => {
-                       break;
-                   }
-               };
+                // Look for jobs for 100 ms, if there's no action
+                // break out of the loop and finish thread execution
+                let job = match receiver
+                    .lock()
+                    .unwrap()
+                    .recv_timeout(Duration::from_millis(10))
+                {
+                    Ok(job) => job,
+                    Err(_) => {
+                        break;
+                    }
+                };
 
-
-               // Execute the closure from execute
-               match job.call_box() {
-                   Some(packet) => thread_results.push(packet),
-                   _ => ()
-               }
+                // Execute the closure from execute
+                match job.call_box() {
+                    Some(packet) => thread_results.push(packet),
+                    _ => (),
+                }
             }
             thread_results
         });
 
-        Worker {
-            id,
-            thread,
-        }
+        Worker { id, thread }
     }
 
     // Interface to allow calling thread to await execution of

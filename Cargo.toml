@@ -1,5 +1,5 @@
 [package]
-name = "sonar"
+name = "nbtscanner"
 version = "0.1.0"
 authors = ["Jon Grimes <jong@spiceworks.com>"]
 
