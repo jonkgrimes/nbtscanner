@@ -43,7 +43,7 @@ impl NetBiosPacket {
         let name_bytes = Vec::from(&self.data[name_range]);
 
         match String::from_utf8(name_bytes) {
-            Ok(name) => String::from(name.trim()),
+            Ok(name) => String::from(name.trim_matches(char::is_whitespace)),
             Err(_) => {
                 println!("Couldn't decode the name");
                 String::from("N/A")
@@ -187,10 +187,10 @@ mod tests {
         for (i, elem) in packet.iter().enumerate() {
             data[i] = *elem;
         }
-        let expected = "SPICE\\ALEXK-WS";
+        let expected = "ALEXK-PC";
         let actual = NetBiosPacket::from(Ipv4Addr::from([127, 0, 0, 1]), data, 175 as usize);
 
-        assert_eq!(expected, actual.group());
+        assert_eq!(expected, actual.name());
     }
 
     #[test]
