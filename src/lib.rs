@@ -18,21 +18,19 @@ const MESSAGE: [u8; 50] = [
 const TIMEOUT_SECONDS: u64 = 2;
 const DEFAULT_THREADS: usize = 100;
 
-struct Config {
+pub struct Config {
     verbose: bool,
 }
 
 impl Config {
-    fn new(verbose: bool) -> Config {
+    pub fn new(verbose: bool) -> Config {
         Config { verbose: verbose }
     }
 }
 
-use nbtscanner::Config;
-use nbtscanner::run;
-
 pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
     let pool = ThreadPool::new(DEFAULT_THREADS);
+    let verbose = config.verbose;
 
     println!(
         "Scanning from {} to {} ({} total)",
@@ -57,7 +55,7 @@ pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
                 .connect((ip, NET_BIOS_PORT))
                 .ok()
                 .expect("Couldn't connect to remote server");
-            if config.verbose {
+            if verbose {
                 println!("Contacting {}", ip);
             }
             socket.send(&MESSAGE).ok().expect("Couldn't send data");
@@ -71,7 +69,7 @@ pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
                     Some(packet)
                 }
                 Err(error) => {
-                    if config.verbose {
+                    if verbose {
                         println!("Encountered an error when contacting {}: {:?}", ip, error);
                     };
                     None
