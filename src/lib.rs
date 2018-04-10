@@ -58,7 +58,14 @@ pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
             if verbose {
                 println!("Contacting {}", ip);
             }
-            socket.send(&MESSAGE).ok().expect("Couldn't send data");
+
+            match socket.send(&MESSAGE) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("Could not send data on the socket: {}", e);
+                    std::process::exit(-1)
+                }
+            }
 
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {

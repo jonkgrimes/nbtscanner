@@ -43,21 +43,23 @@ impl NetBiosPacket {
         let name_bytes = Vec::from(&self.data[name_range]);
 
         match String::from_utf8(name_bytes) {
-            Ok(name) => String::from(name.trim_matches(char::is_whitespace)),
+            Ok(name) => String::from(name.trim_right()),
             Err(_) => {
-                println!("Couldn't decode the name");
+                eprintln!("Couldn't decode the name");
                 String::from("N/A")
             }
         }
     }
 
     pub fn group(&self) -> String {
-        let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN + 1;
-        let block_range = offset..(offset + RESPONSE_NAME_BLOCK_LEN);
+        let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN + 2;
+        let block_range = offset..(offset + RESPONSE_NAME_BLOCK_LEN - 1);
         let block_bytes = Vec::from(&self.data[block_range]);
 
+        println!("{:?}", block_bytes);
+
         match String::from_utf8(block_bytes) {
-            Ok(name) => String::from(name.trim()),
+            Ok(name) => String::from(name.trim_right()),
             Err(_) => {
                 // println!("Couldn't decode the name block");
                 String::from("-")
