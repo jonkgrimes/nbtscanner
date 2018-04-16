@@ -91,10 +91,9 @@ pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
 
     for packet in results {
         println!(
-            "{ip:<15}{group:<15}\\{name:<15}{mac:<15}",
+            "{ip:<16}{group_and_name:<32}{mac:<15}",
             ip = format!("{}", packet.ip),
-            group = packet.group(),
-            name = packet.name(),
+            group_and_name = packet.group_and_name(),
             mac = packet.mac_address()
         );
     }

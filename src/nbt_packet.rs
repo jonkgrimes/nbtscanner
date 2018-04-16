@@ -51,20 +51,30 @@ impl NetBiosPacket {
         }
     }
 
-    pub fn group(&self) -> String {
+    pub fn group(&self) -> Option<String> {
         let offset = RESPONSE_BASE_LEN + RESPONSE_NAME_LEN + 2;
         let block_range = offset..(offset + RESPONSE_NAME_BLOCK_LEN - 1);
         let block_bytes = Vec::from(&self.data[block_range]);
 
-        println!("{:?}", block_bytes);
-
         match String::from_utf8(block_bytes) {
-            Ok(name) => String::from(name.trim_right()),
+            Ok(group) => {
+                let trimmed_group = group.trim_matches('\u{0}').trim_right();
+                Some(String::from(trimmed_group))
+            },
             Err(_) => {
-                // println!("Couldn't decode the name block");
-                String::from("-")
+                // eprintln!("Couldn't decode the group block");
+                None
             }
         }
+    }
+
+    pub fn group_and_name(&self) -> String {
+        if let Some(group) = self.group() {
+            if !group.is_empty() {
+                return format!("{}\\{}", group, self.name())
+            }
+        } 
+        self.name()
     }
 
     pub fn mac_address(&self) -> String {
@@ -162,10 +172,10 @@ mod tests {
         for (i, elem) in packet.iter().enumerate() {
             data[i] = *elem;
         }
-        let expected = "SPICE";
+        let expected = String::from("JACKIEG-WS");
         let actual = NetBiosPacket::from(Ipv4Addr::from([127, 0, 0, 1]), data, 175 as usize);
 
-        assert_eq!(expected, actual.group());
+        assert_eq!(Some(expected), actual.group());
     }
 
     #[test]
