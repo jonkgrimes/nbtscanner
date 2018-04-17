@@ -94,7 +94,7 @@ fn parse_ip_string_with_cidr(
     let start = raw_ip & !bin_mask;
     let end = raw_ip | bin_mask;
     let mut range: Vec<Ipv4Addr> = Vec::new();
-    for n in start..(end - 1) {
+    for n in (start+1)..end {
         range.push(Ipv4Addr::from(n));
     }
     Ok(range)
@@ -103,6 +103,20 @@ fn parse_ip_string_with_cidr(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn skips_the_local_0_address() {
+        let str = "10.192.4.1/24";
+        let actual = parse_ip_string(str).unwrap();
+        assert_eq!(actual.first().unwrap(), &Ipv4Addr::new(10, 192, 4, 1));
+    }
+
+    #[test]
+    fn skips_the_gateway_address() {
+        let str = "10.192.4.1/24";
+        let actual = parse_ip_string(str).unwrap();
+        assert_eq!(actual.last().unwrap(), &Ipv4Addr::new(10, 192, 4, 254));
+    }
 
     #[test]
     fn parse_string_to_ip_address() {
