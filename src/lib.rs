@@ -70,9 +70,6 @@ pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {
                     let packet = NetBiosPacket::from(ip, buf.clone(), number_of_bytes);
-                    // println!("{} bytes received", number_of_bytes);
-                    // println!("{}", ip);
-                    // println!("{}", packet);
                     Some(packet)
                 }
                 Err(error) => {
