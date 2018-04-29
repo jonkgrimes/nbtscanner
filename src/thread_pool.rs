@@ -7,7 +7,7 @@ use std::vec::Vec;
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
-    sender: mpsc::Sender<Job>,
+    sender: mpsc::Sender<Message>,
 }
 
 impl ThreadPool {
@@ -41,7 +41,13 @@ impl ThreadPool {
         let job = Box::new(f);
 
         // Send the job
-        self.sender.send(job).unwrap();
+        self.sender.send(Message::Process(job)).unwrap();
+    }
+
+    pub fn stop(&self) {
+        for _ in &self.workers {
+            self.sender.send(Message::Terminate);
+        }
     }
 
     pub fn join_all(self) -> Vec<NetBiosPacket> {
@@ -70,28 +76,36 @@ struct Worker {
     thread: thread::JoinHandle<Vec<NetBiosPacket>>,
 }
 
+
+enum Message {
+    Process(Job),
+    Terminate
+}
+
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
         let thread = thread::spawn(move || {
             let mut thread_results: Vec<NetBiosPacket> = Vec::with_capacity(4);
             loop {
-                // Look for jobs for 100 ms, if there's no action
-                // break out of the loop and finish thread execution
-                let job = match receiver
+                let message = match receiver
                     .lock()
                     .unwrap()
-                    .recv_timeout(Duration::from_millis(10))
+                    .recv()
                 {
-                    Ok(job) => job,
+                    Ok(message) => message,
                     Err(_) => {
                         break;
                     }
                 };
 
                 // Execute the closure from execute
-                match job.call_box() {
-                    Some(packet) => thread_results.push(packet),
-                    _ => (),
+                match message {
+                    Message::Process(job) => {
+                       if let Some(packet) = job.call_box() {
+                         thread_results.push(packet);
+                       }
+                    },
+                    Message::Terminate => break,
                 }
             }
             thread_results

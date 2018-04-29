@@ -69,6 +69,9 @@ pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
 
             match socket.recv(&mut buf) {
                 Ok(number_of_bytes) => {
+                    if verbose {
+                        println!("Received response from {}", ip);
+                    };
                     let packet = NetBiosPacket::from(ip, buf.clone(), number_of_bytes);
                     Some(packet)
                 }
@@ -81,6 +84,8 @@ pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
             }
         });
     }
+
+    pool.stop();
 
     // Wait for all worker threads to stop
     let mut results = pool.join_all();
