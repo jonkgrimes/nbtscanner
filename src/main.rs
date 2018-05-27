@@ -7,8 +7,8 @@ use clap::{App, Arg};
 
 mod ip_range;
 
-use nbtscanner::Config;
 use nbtscanner::run;
+use nbtscanner::Config;
 
 fn main() {
     let matches = App::new("nbtscanner")

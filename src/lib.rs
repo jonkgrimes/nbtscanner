@@ -1,6 +1,6 @@
+use std::net::Ipv4Addr;
 use std::net::UdpSocket;
 use std::time::Duration;
-use std::net::Ipv4Addr;
 
 mod nbt_packet;
 mod thread_pool;

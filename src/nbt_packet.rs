@@ -60,7 +60,7 @@ impl NetBiosPacket {
             Ok(group) => {
                 let trimmed_group = group.trim_matches('\u{0}').trim_right();
                 Some(String::from(trimmed_group))
-            },
+            }
             Err(_) => {
                 // eprintln!("Couldn't decode the group block");
                 None
@@ -71,9 +71,9 @@ impl NetBiosPacket {
     pub fn group_and_name(&self) -> String {
         if let Some(group) = self.group() {
             if !group.is_empty() {
-                return format!("{}\\{}", group, self.name())
+                return format!("{}\\{}", group, self.name());
             }
-        } 
+        }
         self.name()
     }
 

@@ -2,7 +2,6 @@ use nbt_packet::NetBiosPacket;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
 use std::vec::Vec;
 
 pub struct ThreadPool {
@@ -76,10 +75,9 @@ struct Worker {
     thread: thread::JoinHandle<Vec<NetBiosPacket>>,
 }
 
-
 enum Message {
     Process(Job),
-    Terminate
+    Terminate,
 }
 
 impl Worker {
@@ -87,11 +85,7 @@ impl Worker {
         let thread = thread::spawn(move || {
             let mut thread_results: Vec<NetBiosPacket> = Vec::with_capacity(4);
             loop {
-                let message = match receiver
-                    .lock()
-                    .unwrap()
-                    .recv()
-                {
+                let message = match receiver.lock().unwrap().recv() {
                     Ok(message) => message,
                     Err(_) => {
                         break;
@@ -101,10 +95,10 @@ impl Worker {
                 // Execute the closure from execute
                 match message {
                     Message::Process(job) => {
-                       if let Some(packet) = job.call_box() {
-                         thread_results.push(packet);
-                       }
-                    },
+                        if let Some(packet) = job.call_box() {
+                            thread_results.push(packet);
+                        }
+                    }
                     Message::Terminate => break,
                 }
             }

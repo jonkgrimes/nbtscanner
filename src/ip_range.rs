@@ -44,7 +44,7 @@ impl Error for IpParserError {
         match *self {
             CidrNumberError => {
                 "The provided CIDR number cannot be greater than 32, and not less than 15"
-            }, 
+            },
             IpRangeError => {
                 "The IP provided was not a valid IP (e.g. 268.1.2.3, is not valid because IPv4 addresses can only have values 0-255"
             },
@@ -94,7 +94,7 @@ fn parse_ip_string_with_cidr(
     let start = raw_ip & !bin_mask;
     let end = raw_ip | bin_mask;
     let mut range: Vec<Ipv4Addr> = Vec::new();
-    for n in (start+1)..end {
+    for n in (start + 1)..end {
         range.push(Ipv4Addr::from(n));
     }
     Ok(range)
