@@ -91,12 +91,12 @@ pub fn run(ips: Vec<Ipv4Addr>, config: Config) {
     let mut results = pool.join_all();
     results.sort_by(|a, b| a.ip.cmp(&b.ip)); // NOTE: This sort is in place hence the `mut` on results
 
-    for packet in results {
+    for result in results {
         println!(
             "{ip:<16}{group_and_name:<32}{mac:<15}",
-            ip = format!("{}", packet.ip),
-            group_and_name = packet.group_and_name(),
-            mac = packet.mac_address()
+            ip = format!("{}", result.ip),
+            group_and_name = result.group_and_name(),
+            mac = result.mac_address()
         );
     }
 }

@@ -1,6 +1,7 @@
 # NetBIOS scanner
 
-Little tool I put together playing around with Rust.
+Little tool I put together to scan a set of IP's for NetBIOS name information. It's mostly
+for my own sake to learn a little bit more about Rust.
 
 ## Usage
 
