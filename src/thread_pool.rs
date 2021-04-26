@@ -26,8 +26,8 @@ impl ThreadPool {
 
         let mut workers = Vec::with_capacity(size);
 
-        for id in 0..size {
-            workers.push(Worker::new(id, Arc::clone(&receiver)));
+        for _ in 0..size {
+            workers.push(Worker::new(Arc::clone(&receiver)));
         }
 
         ThreadPool { workers, sender }
@@ -45,7 +45,7 @@ impl ThreadPool {
 
     pub fn stop(&self) {
         for _ in &self.workers {
-            self.sender.send(Message::Terminate);
+            self.sender.send(Message::Terminate).expect("Terminating workers failed");
         }
     }
 
@@ -68,10 +68,9 @@ impl<F: FnOnce() -> Option<NetBiosPacket>> FnBox for F {
     }
 }
 
-type Job = Box<FnBox + Send + 'static>;
+type Job = Box<dyn FnBox + Send + 'static>;
 
 struct Worker {
-    id: usize,
     thread: thread::JoinHandle<Vec<NetBiosPacket>>,
 }
 
@@ -81,7 +80,7 @@ enum Message {
 }
 
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
+    fn new(receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
         let thread = thread::spawn(move || {
             let mut thread_results: Vec<NetBiosPacket> = Vec::with_capacity(4);
             loop {
@@ -105,7 +104,7 @@ impl Worker {
             thread_results
         });
 
-        Worker { id, thread }
+        Worker { thread }
     }
 
     // Interface to allow calling thread to await execution of

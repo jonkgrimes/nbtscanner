@@ -57,7 +57,7 @@ impl Error for IpParserError {
 
 impl fmt::Display for IpParserError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        self.description().fmt(f)
+        self.to_string().fmt(f)
     }
 }
 

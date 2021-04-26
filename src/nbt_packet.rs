@@ -17,11 +17,7 @@ impl Display for NetBiosPacket {
         let mut values = String::new();
         let mut elem = 1; // print 4 values in a row
         for byte in self.data[0..self.length].iter() {
-            if elem % 4 == 0 {
-                values.push_str(&format!("0x{:01$X}, ", byte, 2));
-            } else {
-                values.push_str(&format!("0x{:01$X}, ", byte, 2));
-            }
+            values.push_str(&format!("0x{:01$X}, ", byte, 2));
             elem = elem + 1;
         }
         write!(f, "[{}]", values)
@@ -31,9 +27,9 @@ impl Display for NetBiosPacket {
 impl NetBiosPacket {
     pub fn from(ip: Ipv4Addr, data: [u8; 1024], length: usize) -> NetBiosPacket {
         NetBiosPacket {
-            ip: ip,
-            data: data,
-            length: length,
+            ip,
+            data,
+            length,
         }
     }
 
@@ -43,7 +39,7 @@ impl NetBiosPacket {
         let name_bytes = Vec::from(&self.data[name_range]);
 
         match String::from_utf8(name_bytes) {
-            Ok(name) => String::from(name.trim_right()),
+            Ok(name) => String::from(name.trim_end()),
             Err(_) => {
                 eprintln!("Couldn't decode the name");
                 String::from("N/A")
@@ -58,7 +54,7 @@ impl NetBiosPacket {
 
         match String::from_utf8(block_bytes) {
             Ok(group) => {
-                let trimmed_group = group.trim_matches('\u{0}').trim_right();
+                let trimmed_group = group.trim_matches('\u{0}').trim_end();
                 Some(String::from(trimmed_group))
             }
             Err(_) => {
