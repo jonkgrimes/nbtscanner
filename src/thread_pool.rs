@@ -1,8 +1,8 @@
-use nbt_packet::NetBiosPacket;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::vec::Vec;
+use crate::nbt_packet::NetBiosPacket;
 
 pub struct ThreadPool {
     workers: Vec<Worker>,

@@ -1,8 +1,19 @@
 [package]
 name = "nbtscanner"
-version = "0.1.0"
-authors = ["Jon Grimes <jong@spiceworks.com>"]
+version = "0.0.1"
+authors = ["Jon Grimes <jonkgrimes@gmail.com>"]
+description = """
+A tiny tool to scan a set of IP's for NetBIOS name information.
+"""
+homepage = "https://github.com/jonkgrimes/nbtscanner"
+repository = "https://github.com/jonkgrimes/nbtscanner"
+readme = "README.md"
+license = "MIT"
+edition = "2018"
 
 [dependencies]
 clap = "2.29.1"
 assert_matches = "1.1"
+
+[[bin]]
+name = "nbtscanner"

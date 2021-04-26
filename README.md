@@ -1,7 +1,6 @@
-# NetBIOS scanner
+# nbtscanner (NetBIOS scanner)
 
-Little tool I put together to scan a set of IP's for NetBIOS name information. It's mostly
-for my own sake to learn a little bit more about Rust.
+A tiny tool to scan a set of IP's for NetBIOS name information.
 
 ## Usage
 
