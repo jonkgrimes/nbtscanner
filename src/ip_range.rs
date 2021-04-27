@@ -35,7 +35,6 @@ pub fn parse_ip_string(ip_str: &str) -> IpParserResult<Vec<Ipv4Addr>, IpParserEr
 #[derive(Debug)]
 pub enum IpParserError {
     CidrNumberError,
-    IpRangeError,
     BaseIpError,
 }
 
@@ -44,9 +43,6 @@ impl Error for IpParserError {
         match *self {
             CidrNumberError => {
                 "The provided CIDR number cannot be greater than 32, and not less than 15"
-            },
-            IpRangeError => {
-                "The IP provided was not a valid IP (e.g. 268.1.2.3, is not valid because IPv4 addresses can only have values 0-255"
             },
             BaseIpError => {
                 "The base IP provided was not a valid IP address"
@@ -102,6 +98,7 @@ fn parse_ip_string_with_cidr(
 
 #[cfg(test)]
 mod tests {
+    use assert_matches::assert_matches;
     use super::*;
 
     #[test]
